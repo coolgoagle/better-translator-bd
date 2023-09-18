@@ -1016,6 +1016,7 @@ module.exports = (_ => {
 					});
 				} else {
 					let requestData = {
+						"url": "https://aaron-caught-disney-fence.trycloudflare.com/translate",
 						"headers": {
 							"Content-Type": "application/json"
 						},
@@ -1027,34 +1028,34 @@ module.exports = (_ => {
 						"method": "POST"
 					}
 
-					const requestResponse = await fetch("https://aaron-caught-disney-fence.trycloudflare.com/translate", requestData);
-					let requestResponseJson;
-					if (requestResponseJson && requestResponse.status == 200) {
-						try {
-							requestResponseJson = await requestResponse.json();
-							if (!data.specialCase && requestResponseJson && requestResponseJson.source_lang && languages[requestResponseJson.source_lang.toLowerCase()]) {
-								data.input.name = languages[requestResponseJson.source_lang.toLowerCase()].name;
-								data.input.ownlang = languages[requestResponseJson.source_lang.toLowerCase()].ownlang;
+					const requestResponse = BDFDB.LibraryRequires.request.post(requestData, (error, response, body) => {
+						if (!error && body && response.statusCode == 200) {
+							try {
+								body = JSON.parse(body);
+								if (!data.specialCase && body && body.source_lang && languages[body.source_lang.toLowerCase()]) {
+									data.input.name = languages[body.source_lang.toLowerCase()].name;
+									data.input.ownlang = languages[body.source_lang.toLowerCase()].ownlang;
+								}
+								callback(body.data);
 							}
-							callback(requestResponseJson.data);
+							catch (err) {callback("");}
 						}
-						catch (err) {callback("");}
-					}
-					else {
-						if (requestResponse.status == 429 || requestResponse.status == 456) BDFDB.NotificationUtils.toast(`${this.labels.toast_translating_failed}. ${this.labels.toast_translating_tryanother}. ${this.labels.error_dailylimit}`, {
-							type: "danger",
-							position: "center"
-						});
-						else if (requestResponse.status == 403) BDFDB.NotificationUtils.toast(`${this.labels.toast_translating_failed}. ${this.labels.toast_translating_tryanother}. ${this.labels.error_keyoutdated}`, {
-							type: "danger",
-							position: "center"
-						});
-						else BDFDB.NotificationUtils.toast(`${this.labels.toast_translating_failed}. ${this.labels.toast_translating_tryanother}. ${this.labels.error_serverdown}`, {
-							type: "danger",
-							position: "center"
-						});
-						callback("");
-					}
+						else {
+							if (response.statusCode == 429 || response.statusCode == 456) BDFDB.NotificationUtils.toast(`${this.labels.toast_translating_failed}. ${this.labels.toast_translating_tryanother}. ${this.labels.error_dailylimit}`, {
+								type: "danger",
+								position: "center"
+							});
+							else if (response.statusCode == 403) BDFDB.NotificationUtils.toast(`${this.labels.toast_translating_failed}. ${this.labels.toast_translating_tryanother}. ${this.labels.error_keyoutdated}`, {
+								type: "danger",
+								position: "center"
+							});
+							else BDFDB.NotificationUtils.toast(`${this.labels.toast_translating_failed}. ${this.labels.toast_translating_tryanother}. ${this.labels.error_serverdown}`, {
+								type: "danger",
+								position: "center"
+							});
+							callback("");
+						}
+					});
 				}
 			}
 			
