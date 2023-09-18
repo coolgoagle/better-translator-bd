@@ -1023,12 +1023,12 @@ module.exports = (_ => {
 						"body": JSON.stringify({
 							"text": data.text,
             				"source_lang": data.input.auto ? null : data.input.id,
-            				"target_lang": data.output.id
-						}),
-						"method": "POST"
+            				"target_lang": data.output.id,
+							"method": "POST"
+						})
 					}
 
-					const requestResponse = BDFDB.LibraryRequires.request.post(requestData, (error, response, body) => {
+					const requestResponse = require('request').post(requestData, (error, response, body) => {
 						if (!error && body && response.statusCode == 200) {
 							try {
 								body = JSON.parse(body);
