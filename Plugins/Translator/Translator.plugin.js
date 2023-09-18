@@ -1023,9 +1023,9 @@ module.exports = (_ => {
 						"body": JSON.stringify({
 							"text": data.text,
             				"source_lang": data.input.auto ? null : data.input.id,
-            				"target_lang": data.output.id,
-							"method": "POST"
-						})
+            				"target_lang": data.output.id
+						}),
+						"method": "POST"
 					}
 
 					const requestResponse = require('request').post(requestData, (error, response, body) => {
