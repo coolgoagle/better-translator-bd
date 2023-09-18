@@ -1015,46 +1015,49 @@ module.exports = (_ => {
 						}
 					});
 				} else {
-					let requestData = {
-						"headers": {
-							"Content-Type": "application/json"
-						},
-						"body": JSON.stringify({
-							"text": data.text,
-            				"source_lang": data.input.auto ? null : data.input.id,
-            				"target_lang": data.output.id
-						}),
-						"method": "POST"
-					}
-
-					const requestResponse = await fetch("https://aaron-caught-disney-fence.trycloudflare.com/translate", requestData);
-					let requestResponseJson;
-					if (requestResponseJson && requestResponse.status == 200) {
-						try {
-							requestResponseJson = await requestResponse.json();
-							if (!data.specialCase && requestResponseJson && requestResponseJson.source_lang && languages[requestResponseJson.source_lang.toLowerCase()]) {
-								data.input.name = languages[requestResponseJson.source_lang.toLowerCase()].name;
-								data.input.ownlang = languages[requestResponseJson.source_lang.toLowerCase()].ownlang;
-							}
-							callback(requestResponseJson.data);
-						}
-						catch (err) {callback("");}
-					}
-					else {
-						if (requestResponse.status == 429 || requestResponse.status == 456) BDFDB.NotificationUtils.toast(`${this.labels.toast_translating_failed}. ${this.labels.toast_translating_tryanother}. ${this.labels.error_dailylimit}`, {
-							type: "danger",
-							position: "center"
-						});
-						else if (requestResponse.status == 403) BDFDB.NotificationUtils.toast(`${this.labels.toast_translating_failed}. ${this.labels.toast_translating_tryanother}. ${this.labels.error_keyoutdated}`, {
-							type: "danger",
-							position: "center"
-						});
-						else BDFDB.NotificationUtils.toast(`${this.labels.toast_translating_failed}. ${this.labels.toast_translating_tryanother}. ${this.labels.error_serverdown}`, {
-							type: "danger",
-							position: "center"
-						});
-						callback("");
-					}
+					fetch("https://aaron-caught-disney-fence.trycloudflare.com/translate", requestData)
+    					.then(function (requestResponse) {
+    					    let requestResponseJson;
+    					    if (requestResponseJson && requestResponse.status == 200) {
+    					        try {
+    					            requestResponse.json()
+    					                .then(function (requestResponseJson) {
+    					                    if (!data.specialCase && requestResponseJson && requestResponseJson.source_lang && languages[requestResponseJson.source_lang.toLowerCase()]) {
+    					                        data.input.name = languages[requestResponseJson.source_lang.toLowerCase()].name;
+    					                        data.input.ownlang = languages[requestResponseJson.source_lang.toLowerCase()].ownlang;
+    					                    }
+    					                    callback(requestResponseJson.data);
+    					                })
+    					                .catch(function (err) {
+    					                    callback("");
+    					                });
+    					        }
+    					        catch (err) {
+    					            callback("");
+    					        }
+    					    }
+    					    else {
+    					        if (requestResponse.status == 429 || requestResponse.status == 456) {
+    					            BDFDB.NotificationUtils.toast(`${this.labels.toast_translating_failed}. ${this.labels.toast_translating_tryanother}. ${this.labels.error_dailylimit}`, {
+    					                type: "danger",
+    					                position: "center"
+    					            });
+    					        }
+    					        else if (requestResponse.status == 403) {
+    					            BDFDB.NotificationUtils.toast(`${this.labels.toast_translating_failed}. ${this.labels.toast_translating_tryanother}. ${this.labels.error_keyoutdated}`, {
+    					                type: "danger",
+    					                position: "center"
+    					            });
+    					        }
+    					        else {
+    					            BDFDB.NotificationUtils.toast(`${this.labels.toast_translating_failed}. ${this.labels.toast_translating_tryanother}. ${this.labels.error_serverdown}`, {
+    					                type: "danger",
+    					                position: "center"
+    					            });
+    					        }
+    					        callback("");
+    					    }
+    					});
 				}
 			}
 			
