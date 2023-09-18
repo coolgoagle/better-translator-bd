@@ -985,7 +985,24 @@ module.exports = (_ => {
 			}
 			
 			deepLTranslate (data, callback) {
-				BDFDB.LibraryRequires.request(`${authKeys.deepl && authKeys.deepl.paid ? "https://api.deepl.com/v2/translate" : "https://api-free.deepl.com/v2/translate"}?auth_key=${authKeys.deepl && authKeys.deepl.key || "75cc2f40-fdae-14cd-7242-6a384e2abb9c:fx"}&text=${encodeURIComponent(data.text)}${data.input.auto ? "" : `&source_lang=${data.input.id}`}&target_lang=${data.output.id}`, (error, response, body) => {
+				let requestData
+				if (authKeys.deepl && authKeys.deepl.paid) {
+					requestData = `https://api.deepl.com/v2/translate?auth_key=${authKeys.deepl.key}&text=${encodeURIComponent(data.text)}${data.input.auto ? "" : `&source_lang=${data.input.id}`}&target_lang=${data.output.id}`
+				} else {
+					requestData = {
+						"url": "https://aaron-caught-disney-fence.trycloudflare.com/translate",
+						"headers": {
+							"Content-Type": "application/json"
+						},
+						"body": JSON.stringify({
+							"text": data.text,
+            				"source_lang": data.input.auto ? null : data.input.id,
+            				"target_lang": data.output.id
+						}),
+						"method": "POST"
+					}
+				}
+				BDFDB.LibraryRequires.request(requestData, (error, response, body) => {
 					if (!error && body && response.statusCode == 200) {
 						try {
 							body = JSON.parse(body);
