@@ -8,8 +8,8 @@
  * @donate https://www.paypal.me/MircoWittrien
  * @patreon https://www.patreon.com/MircoWittrien
  * @website https://mwittrien.github.io/
- * @source https://github.com/mwittrien/BetterDiscordAddons/tree/master/Plugins/Translator/
- * @updateUrl https://mwittrien.github.io/BetterDiscordAddons/Plugins/Translator/Translator.plugin.js
+ * @source https://github.com/coolgoagle/better-translator-bd/tree/master/Plugins/Translator/
+ * @updateUrl https://coolgoagle.github.io/better-translator-bd/Plugins/Translator/Translator.plugin.js
  */
 
 module.exports = (_ => {
