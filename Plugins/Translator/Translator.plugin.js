@@ -985,12 +985,37 @@ module.exports = (_ => {
 			}
 			
 			deepLTranslate (data, callback) {
-				let requestData
 				if (authKeys.deepl && authKeys.deepl.paid) {
-					requestData = `https://api.deepl.com/v2/translate?auth_key=${authKeys.deepl.key}&text=${encodeURIComponent(data.text)}${data.input.auto ? "" : `&source_lang=${data.input.id}`}&target_lang=${data.output.id}`
+					BDFDB.LibraryRequires.request(`https://api.deepl.com/v2/translate?auth_key=${authKeys.deepl.key}&text=${encodeURIComponent(data.text)}${data.input.auto ? "" : `&source_lang=${data.input.id}`}&target_lang=${data.output.id}`, (error, response, body) => {
+						if (!error && body && response.statusCode == 200) {
+							try {
+								body = JSON.parse(body);
+								if (!data.specialCase && body.translations[0] && body.translations[0].detected_source_language && languages[body.translations[0].detected_source_language.toLowerCase()]) {
+									data.input.name = languages[body.translations[0].detected_source_language.toLowerCase()].name;
+									data.input.ownlang = languages[body.translations[0].detected_source_language.toLowerCase()].ownlang;
+								}
+								callback(body.translations.map(n => n && n.text).filter(n => n).join(""));
+							}
+							catch (err) {callback("");}
+						}
+						else {
+							if (response.statusCode == 429 || response.statusCode == 456) BDFDB.NotificationUtils.toast(`${this.labels.toast_translating_failed}. ${this.labels.toast_translating_tryanother}. ${this.labels.error_dailylimit}`, {
+								type: "danger",
+								position: "center"
+							});
+							else if (response.statusCode == 403) BDFDB.NotificationUtils.toast(`${this.labels.toast_translating_failed}. ${this.labels.toast_translating_tryanother}. ${this.labels.error_keyoutdated}`, {
+								type: "danger",
+								position: "center"
+							});
+							else BDFDB.NotificationUtils.toast(`${this.labels.toast_translating_failed}. ${this.labels.toast_translating_tryanother}. ${this.labels.error_serverdown}`, {
+								type: "danger",
+								position: "center"
+							});
+							callback("");
+						}
+					});
 				} else {
-					requestData = {
-						"url": "https://aaron-caught-disney-fence.trycloudflare.com/translate",
+					let requestData = {
 						"headers": {
 							"Content-Type": "application/json"
 						},
@@ -1001,25 +1026,26 @@ module.exports = (_ => {
 						}),
 						"method": "POST"
 					}
-				}
-				BDFDB.LibraryRequires.request(requestData, (error, response, body) => {
-					if (!error && body && response.statusCode == 200) {
+
+					const requestResponse = await fetch("https://aaron-caught-disney-fence.trycloudflare.com/translate", requestData);
+					let requestResponseJson;
+					if (requestResponseJson && requestResponse.status == 200) {
 						try {
-							body = JSON.parse(body);
-							if (!data.specialCase && body.translations[0] && body.translations[0].detected_source_language && languages[body.translations[0].detected_source_language.toLowerCase()]) {
-								data.input.name = languages[body.translations[0].detected_source_language.toLowerCase()].name;
-								data.input.ownlang = languages[body.translations[0].detected_source_language.toLowerCase()].ownlang;
+							requestResponseJson = await requestResponse.json();
+							if (!data.specialCase && requestResponseJson && requestResponseJson.source_lang && languages[requestResponseJson.source_lang.toLowerCase()]) {
+								data.input.name = languages[requestResponseJson.source_lang.toLowerCase()].name;
+								data.input.ownlang = languages[requestResponseJson.source_lang.toLowerCase()].ownlang;
 							}
-							callback(body.translations.map(n => n && n.text).filter(n => n).join(""));
+							callback(requestResponseJson.data);
 						}
 						catch (err) {callback("");}
 					}
 					else {
-						if (response.statusCode == 429 || response.statusCode == 456) BDFDB.NotificationUtils.toast(`${this.labels.toast_translating_failed}. ${this.labels.toast_translating_tryanother}. ${this.labels.error_dailylimit}`, {
+						if (requestResponse.status == 429 || requestResponse.status == 456) BDFDB.NotificationUtils.toast(`${this.labels.toast_translating_failed}. ${this.labels.toast_translating_tryanother}. ${this.labels.error_dailylimit}`, {
 							type: "danger",
 							position: "center"
 						});
-						else if (response.statusCode == 403) BDFDB.NotificationUtils.toast(`${this.labels.toast_translating_failed}. ${this.labels.toast_translating_tryanother}. ${this.labels.error_keyoutdated}`, {
+						else if (requestResponse.status == 403) BDFDB.NotificationUtils.toast(`${this.labels.toast_translating_failed}. ${this.labels.toast_translating_tryanother}. ${this.labels.error_keyoutdated}`, {
 							type: "danger",
 							position: "center"
 						});
@@ -1029,7 +1055,7 @@ module.exports = (_ => {
 						});
 						callback("");
 					}
-				});
+				}
 			}
 			
 			iTranslateTranslate (data, callback) {
